@@ -15,7 +15,12 @@ export const ALL_BOOKS = gql`
     allBooks  {
       title
       published
-      author
+      author {
+        name
+        bookCount
+        id
+        born
+      }
     }
   }
 `
@@ -29,7 +34,11 @@ export const CREATE_BOOK = gql`
       genres: $genres
     ) {
       title
-      author
+      author {
+        name
+        born
+        bookCount
+      }
     }
   }
 `
@@ -39,28 +48,15 @@ export const EDIT_AUTHOR = gql`
     editAuthor(name: $name, setBornTo: $setBornTo) {
       name
       born
+      bookCount
     }
   }
 `
 
-/**
- * 
- * export const CREATE_PERSON = gql`
-  mutation createPerson($name: String!, $street: String!, $city: String!, $phone: String) {
-    addPerson(
-      name: $name,
-      street: $street,
-      city: $city,
-      phone: $phone
-    ) {
-      name
-      phone
-      id
-      address {
-        street
-        city
-      }
+export const LOGIN = gql`
+  mutation login($username: String!, $password: String!) {
+    login(username: $username, password: $password)  {
+      value
     }
   }
 `
- */
