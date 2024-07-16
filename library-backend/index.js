@@ -119,12 +119,17 @@ const resolvers = {
       }
       },
     allAuthors: async (root, args) => {
+      const books = await Book.find({}).populate('author', { name: 1, _id: 1, born: 1})
       let res = await Author.find({})
       res = res.map(a => {
         return {
           id: a._id,
           name: a.name,
-          bookCount: a.bookCount || 0,
+          bookCount: books.reduce((authorBookCount, book) => {
+            if (book.author.name === a.name) authorBookCount += 1
+            return authorBookCount
+          }, 0),
+          born: a.born
         }
       })
       return res
