@@ -1,15 +1,12 @@
 const { ApolloServer } = require('@apollo/server')
 const { startStandaloneServer } = require('@apollo/server/standalone')
-const { v1: uuid } = require('uuid')
 const { GraphQLError } = require('graphql')
-const jwt = require('jsonwebtoken')
-
 const mongoose = require('mongoose')
-mongoose.set('strictQuery', false)
 const Author = require('./models/author')
 const Book = require('./models/book')
 require('dotenv').config()
 
+mongoose.set('strictQuery', false)
 const MONGODB_URI=process.env.MONGODB_URI
 
 console.log('connecting to', MONGODB_URI)
@@ -23,7 +20,7 @@ mongoose.connect(MONGODB_URI)
   })
 
 /*
-  you can remove the placeholder query once your first one has been implemented 
+  you can remove the placeholder query once your first one has been implemented
 */
 
 const typeDefs = `
@@ -69,14 +66,31 @@ const resolvers = {
       const filters = {}
       if (args.author) filters.author = { name: args.author }
       if (args.genre) filters.genres = { '$all': [ args.genre ] }
-      return Book.find(filters)
+      const res = await Book.find(filters).populate('author', { name: 1, id: 1, born: 1})
+      const bookCountPerAuthor = res.reduce((res, book) => {
+        if (res[book.author.name]) {
+          res[book.author.name] += 1
+          return res
+        }
+        res[book.author.name] = 1
+        return res
+      }, {})
+      return res.map(b => {
+        b.author.bookCount = bookCountPerAuthor[b.author.name] || 0
+        return b
+      })
       },
     allAuthors: async (root, args) => {
-      return Author.find({})
+      let res = await Author.find({})
+      res = res.map(a => {
+        return {
+          id: a._id,
+          name: a.name,
+          bookCount: a.bookCount || 0,
+        }
+      })
+      return res
     }
-  },
-  Author: {
-    bookCount: ({ name }) => Book.find({ author: { name } })
   },
   Mutation: {
     addBook: async (root, args) => {
@@ -110,7 +124,7 @@ const resolvers = {
       if (!author) {
         return null
       }
-  
+
       try {
         await Author.updateOne({ name: args.name }, { born: args.setBornTo })
       } catch (error) {
@@ -125,7 +139,7 @@ const resolvers = {
       }
 
       return { name: args.name, born: args.setBornTo, }
-    } 
+    }
   }
 }
 
