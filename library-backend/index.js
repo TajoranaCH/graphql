@@ -28,7 +28,7 @@ mongoose.connect(MONGODB_URI)
 const typeDefs = `
   type User {
     username: String!
-    favoriteGenre: String!
+    favouriteGenre: String!
     id: ID!
   }
 
@@ -135,6 +135,7 @@ const resolvers = {
       return res
     },
     me: (root, args, context) => {
+      console.log(context.currentUser)
       return context.currentUser
     }
   },

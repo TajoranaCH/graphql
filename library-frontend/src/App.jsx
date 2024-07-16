@@ -7,6 +7,7 @@ import NewBook from "./components/NewBook";
 import { ALL_AUTHORS, ALL_BOOKS } from "./queries";
 import LoginForm from './components/LoginForm'
 import Notify from "./components/Notify";
+import Recommendations from "./components/Recommendations"
 
 const App = () => {
   const authorsResult = useQuery(ALL_AUTHORS);
@@ -47,6 +48,7 @@ const App = () => {
         <button onClick={() => setPage("books")}>books</button>
         {!token && <button onClick={() => setPage("login")}>login</button>}
         {token && <button onClick={() => setPage("add")}>add book</button>}
+        {token && <button onClick={() => setPage("recommendations")}>recommendations</button>}
         {token && <button onClick={() => logout()}>logout</button>}
       </div>
 
@@ -57,6 +59,8 @@ const App = () => {
       <NewBook show={page === "add"} />
 
       <LoginForm show={page=="login"} setToken={setTokenFromLogin} setError={notify}></LoginForm>
+    
+      <Recommendations show={page=="recommendations"} books={booksResult.data.allBooks}/>
     </div>
   );
 };
