@@ -64,21 +64,33 @@ const resolvers = {
     authorCount: async () => Author.collection.countDocuments(),
     allBooks: async (root, args, context) => {
       const filters = {}
-      if (args.author) filters.author = { name: args.author }
+      
       if (args.genre) filters.genres = { '$all': [ args.genre ] }
-      const res = await Book.find(filters).populate('author', { name: 1, id: 1, born: 1})
-      const bookCountPerAuthor = res.reduce((res, book) => {
-        if (res[book.author.name]) {
-          res[book.author.name] += 1
+      try {
+        let res = await Book.find(filters).populate('author', { name: 1, _id: 1, born: 1})
+        if (args.author) res = res.filter(b => b.author.name === args.author)
+        const bookCountPerAuthor = res.reduce((res, book) => {
+          if (res[book.author.name]) {
+            res[book.author.name] += 1
+            return res
+          }
+          res[book.author.name] = 1
           return res
-        }
-        res[book.author.name] = 1
-        return res
-      }, {})
-      return res.map(b => {
-        b.author.bookCount = bookCountPerAuthor[b.author.name] || 0
-        return b
-      })
+        }, {})
+        return res.map(b => {
+          b.author.bookCount = bookCountPerAuthor[b.author.name] || 0
+          return b
+        })
+      } catch (error) {
+        console.log(error)
+        throw new GraphQLError('finding books failed', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            invalidArgs: args,
+            error
+          }
+        })
+      }
       },
     allAuthors: async (root, args) => {
       let res = await Author.find({})
