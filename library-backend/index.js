@@ -177,13 +177,14 @@ const resolvers = {
       }
 
       const author = await Author.findOne({ name: args.name })
-      console.log(author)
+      let bookCount
       if (!author) {
         return null
       }
 
       try {
         await Author.updateOne({ name: args.name }, { born: args.setBornTo })
+        bookCount = await Book.countDocuments({ author: { _id: author._id }})
       } catch (error) {
         console.log(error)
         throw new GraphQLError('Updating author failed', {
@@ -195,7 +196,7 @@ const resolvers = {
         })
       }
 
-      return { name: args.name, born: args.setBornTo, }
+      return { name: args.name, born: args.setBornTo, bookCount: bookCount }
     },
     login: async (root, args) => {
       const user = await User.findOne({ username: args.username })

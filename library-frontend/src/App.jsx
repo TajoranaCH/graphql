@@ -42,7 +42,6 @@ const App = () => {
       </>
     )
   }
-  console.log('authhhh', authorsResult.data.allAuthors)
   return (
     <div>
       <Notify errorMessage={errorMessage} />
