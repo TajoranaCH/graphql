@@ -2,21 +2,18 @@ import { useState } from "react"
 import { CURRENT_USER } from '../queries'
 import { useQuery, useApolloClient } from "@apollo/client"
 
-const Books = ({show, books}) => {
-  const activeUser = useQuery(CURRENT_USER)
-
-  if (!show || !activeUser) {
+const Recommendations = ({show, books, activeUser}) => {
+  if (!show || !activeUser || !activeUser.favouriteGenre) {
     return null
   }
 
   if (activeUser.loading) {
     return <div>loading...</div>
   }
-
   return (
     <div>
       <h2>recommendations</h2>
-      <p>books in your favourite genre <b>{activeUser.data.me.favouriteGenre}</b></p>
+      <p>books in your favourite genre <b>{activeUser.favouriteGenre}</b></p>
       <table>
         <tbody>
           <tr>
@@ -25,7 +22,7 @@ const Books = ({show, books}) => {
             <th>published</th>
           </tr>
           {books.map((b) => {
-            if (b.genres.includes(activeUser.data.me.favouriteGenre)) {
+            if (b.genres.includes(activeUser.favouriteGenre)) {
               return <tr key={b.title}>
               <td>{b.title}</td>
               <td>{b.author.name}</td>
@@ -40,4 +37,4 @@ const Books = ({show, books}) => {
   )
 }
 
-export default Books
+export default Recommendations

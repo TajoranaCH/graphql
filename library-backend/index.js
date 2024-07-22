@@ -135,7 +135,9 @@ const resolvers = {
       return res
     },
     me: (root, args, context) => {
-      console.log(context.currentUser)
+      if (!currentUser) {
+        notAuthenticated()
+      }
       return context.currentUser
     }
   },

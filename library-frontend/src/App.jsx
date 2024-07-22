@@ -4,21 +4,29 @@ import { useQuery, useApolloClient  } from "@apollo/client";
 import Authors from "./components/Authors";
 import Books from "./components/Books";
 import NewBook from "./components/NewBook";
-import { ALL_AUTHORS, ALL_BOOKS } from "./queries";
+import { ALL_AUTHORS, ALL_BOOKS, CURRENT_USER } from "./queries";
 import LoginForm from './components/LoginForm'
 import Notify from "./components/Notify";
 import Recommendations from "./components/Recommendations"
+import { useEffect } from "react";
 
 const App = () => {
   const authorsResult = useQuery(ALL_AUTHORS);
   const booksResult = useQuery(ALL_BOOKS);
+  const activeUserResult = useQuery(CURRENT_USER)
+
   const [errorMessage, setErrorMessage] = useState(null)
-  const [token, setToken] = useState(localStorage.getItem('books-user-token'))
+  const [token, setToken] = useState(null)
   const client = useApolloClient()
 
   const [page, setPage] = useState("authors");
 
-  if (authorsResult.loading || booksResult.loading) {
+  useEffect(() => {
+    const activeToken = localStorage.getItem('books-user-token')
+    if (activeToken) setToken(activeToken)
+  }, [activeUserResult.data])
+
+  if (authorsResult.loading || booksResult.loading || activeUserResult.loading) {
     return <div>loading...</div>
   }
 
@@ -33,10 +41,12 @@ const App = () => {
     setToken(null)
     localStorage.clear()
     client.resetStore()
+    setPage("login")
   }
 
   const setTokenFromLogin = (token) => {
     setToken(token)
+    localStorage.setItem('books-user-token', token)
     setPage("books")
   }
 
@@ -60,7 +70,7 @@ const App = () => {
 
       <LoginForm show={page=="login"} setToken={setTokenFromLogin} setError={notify}></LoginForm>
     
-      <Recommendations show={page=="recommendations"} books={booksResult.data.allBooks}/>
+      <Recommendations show={page=="recommendations"} books={booksResult.data.allBooks} activeUser={activeUserResult.data.me}/>
     </div>
   );
 };
